@@ -2,7 +2,7 @@
 
 /* Tokens from design.md, adapted for the dashboard */
 @theme {
-  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-metropolis), ui-sans-serif, system-ui, sans-serif;
 
   /* Darker than design.md's #FCF9F7 so white rows separate by tone, no borders or shadows */
   --color-bg: oklch(0.955 0.004 60);
@@ -39,6 +39,7 @@
   body {
     background: var(--color-bg);
     color: var(--color-ink);
+    font-weight: 500;
     line-height: 1.6;
   }
   
