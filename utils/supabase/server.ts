@@ -1,5 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { connection } from "next/server";
+import { cache } from "react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -20,3 +23,14 @@ export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) =
     },
   });
 };
+
+// The signed-in user and a client acting as them, read once per request. Redirects to /login when signed out.
+export const getSession = cache(async () => {
+  const cookieStore = await cookies();
+  // Supabase checks token expiry with Date.now(), so this must run at request time, not in a cookie-aware prerender.
+  await connection();
+  const supabase = createClient(cookieStore);
+  const { data } = await supabase.auth.getClaims();
+  if (!data) redirect("/login");
+  return { supabase, user: data.claims };
+});

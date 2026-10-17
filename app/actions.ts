@@ -3,20 +3,14 @@
 import { refresh } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { accept, getUser, setStatus, type Status } from "@/lib/favours";
-import { createClient } from "@/utils/supabase/server";
+import { accept, setStatus, type Status } from "@/lib/favours";
+import { createClient, getSession } from "@/utils/supabase/server";
 
 export type ActionState = { error?: string } | undefined;
 
-// ponytail: favours still run on a demo identity (a leftover `uid` cookie, else the first demo user), not the Supabase session.
-// Key them to the signed-in user once favours live in the database.
-async function currentUser() {
-  return getUser((await cookies()).get("uid")?.value);
-}
-
-async function run(fn: () => void): Promise<ActionState> {
+async function run(fn: () => Promise<void>): Promise<ActionState> {
   try {
-    fn();
+    await fn();
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Something went wrong" };
   }
@@ -24,13 +18,13 @@ async function run(fn: () => void): Promise<ActionState> {
 }
 
 export async function acceptFavour(_: ActionState, form: FormData) {
-  const user = await currentUser();
-  return run(() => accept(String(form.get("id")), user.id));
+  const { supabase, user } = await getSession();
+  return run(() => accept(supabase, String(form.get("id")), user.sub));
 }
 
 export async function updateStatus(_: ActionState, form: FormData) {
-  const user = await currentUser();
-  return run(() => setStatus(String(form.get("id")), user.id, String(form.get("to")) as Status));
+  const { supabase } = await getSession();
+  return run(() => setStatus(supabase, String(form.get("id")), String(form.get("to")) as Status));
 }
 
 export type AuthState = { error?: string; message?: string } | undefined;

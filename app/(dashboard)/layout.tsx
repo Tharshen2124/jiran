@@ -1,11 +1,8 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { connection } from "next/server";
 import { Suspense } from "react";
 import { signOut } from "../actions";
 import { NavLink } from "../client";
-import { getPoints, getUser } from "@/lib/favours";
-import { createClient } from "@/utils/supabase/server";
+import { getPoints } from "@/lib/favours";
+import { getSession } from "@/utils/supabase/server";
 
 const SIDEBAR_BUTTON =
   "min-h-11 rounded-full bg-white/10 px-4 text-sm font-semibold text-on-dark transition-colors duration-200 ease-arrive hover:bg-white/20";
@@ -13,22 +10,16 @@ const SIDEBAR_BUTTON =
 const ROLE_LABEL = { resident: "Resident", ra: "Resident administration", guard: "Security guard" } as const;
 
 async function Account() {
-  const cookieStore = await cookies();
-  const user = getUser(cookieStore.get("uid")?.value);
-  // Supabase checks token expiry with Date.now(), so this must run at request time, not in a cookie-aware prerender.
-  await connection();
-  const supabase = createClient(cookieStore);
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-  if (!authUser) redirect("/login");
-  // RLS only returns the caller's own row.
-  const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", authUser.id).single();
+  const { supabase, user } = await getSession();
+  const [{ data: profile }, points] = await Promise.all([
+    supabase.from("profiles").select("role, full_name").eq("id", user.sub).single(),
+    getPoints(supabase, user.sub),
+  ]);
   return (
     <div className="flex flex-wrap items-end gap-x-6 gap-y-4 md:flex-col md:items-stretch">
       <form action={signOut} className="flex flex-wrap items-center gap-2 md:flex-col md:items-stretch">
         <p className="min-w-0 leading-tight">
-          <span className="block truncate text-sm font-semibold text-on-dark">{profile?.full_name ?? authUser.email}</span>
+          <span className="block truncate text-sm font-semibold text-on-dark">{profile?.full_name ?? user.email}</span>
           <span className="block text-sm text-brand-bright">{ROLE_LABEL[(profile?.role ?? "resident") as keyof typeof ROLE_LABEL]}</span>
         </p>
         <button className={SIDEBAR_BUTTON}>Sign out</button>
@@ -36,7 +27,7 @@ async function Account() {
       <p className="flex flex-col-reverse">
         <span className="text-sm text-on-dark-muted">Your points</span>
         <span className="text-3xl font-bold tabular-nums">
-          {getPoints(user.id)} <span className="text-base font-semibold text-gold">pts</span>
+          {points} <span className="text-base font-semibold text-gold">pts</span>
         </span>
       </p>
     </div>
