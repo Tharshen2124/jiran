@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "getdesign": {
+      "source": "MohtashamMurshid/getdesign",
+      "sourceType": "github",
+      "skillPath": "skills/getdesign/SKILL.md",
+      "computedHash": "662ca8af935307fb63b5164205580beeb775a5d61a7d3085fc652ee8a0d9d0a6"
+    }
+  }
+}
