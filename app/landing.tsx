@@ -35,7 +35,7 @@ export function Headline() {
               type="button"
               onClick={() => setI((i + 1) % FAVOURS.length)}
               aria-label={`${f.pts} points. Show another favour`}
-              className="press inline-flex h-[0.8em] translate-y-[-0.04em] cursor-pointer items-baseline justify-center gap-[0.08em] overflow-hidden rounded-[0.16em] bg-gold px-[0.24em] pt-[0.1em] align-baseline text-deep transition-colors duration-200 hover:bg-white"
+              className="press inline-flex h-[0.8em] translate-y-[-0.04em] cursor-pointer items-baseline justify-center gap-[0.08em] overflow-hidden rounded-[0.16em] bg-gold px-[0.24em] pt-[0.1em] align-baseline text-deep transition-colors duration-200 hover:bg-ink hover:text-paper"
             >
               <span key={i} className="tick text-[0.62em] tabular-nums">+{f.pts}</span>
               <span className="text-[0.28em] tracking-normal">pts</span>

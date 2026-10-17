@@ -6,7 +6,7 @@ const BUTTON =
 
 export default function Landing() {
   return (
-    <main className="landing flex min-h-svh flex-col bg-brand px-4 py-5 text-white md:px-7 md:py-7">
+    <main className="landing flex min-h-svh flex-col bg-paper px-4 py-5 text-ink md:px-7 md:py-7">
       <header className="rise flex items-baseline justify-between gap-6" style={{ "--i": 0 } as React.CSSProperties}>
         <p className="text-2xl font-extrabold tracking-[-0.03em]">Jiran</p>
         <p className="text-right">City of Elmina, Shah Alam</p>
@@ -21,10 +21,10 @@ export default function Landing() {
           Jiran is Malay for neighbour. Post a favour to your jalan, and earn points for the ones you do.
         </p>
         <p className="rise flex flex-col gap-3 sm:flex-row lg:col-span-6 lg:justify-end" style={{ "--i": 2 } as React.CSSProperties}>
-          <Link href="/login" className={`${BUTTON} bg-white text-brand-strong hover:bg-surface-2`}>
+          <Link href="/login" className={`${BUTTON} bg-white text-ink hover:bg-surface-2`}>
             Sign in
           </Link>
-          <Link href="/login?mode=signup" className={`${BUTTON} bg-brand-strong text-white hover:bg-deep`}>
+          <Link href="/login?mode=signup" className={`${BUTTON} bg-ink text-paper hover:bg-deep`}>
             Create an account
           </Link>
         </p>
