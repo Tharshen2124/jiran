@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { signOut } from "../actions";
-import { NavLink } from "../client";
+import { LiveLocationToggle, NavLink } from "../client";
 import { getSession } from "@/utils/supabase/server";
 
 const SIDEBAR_BUTTON =
@@ -23,6 +23,7 @@ async function Account() {
   );
   return (
     <>
+      <LiveLocationToggle userId={user.sub} />
       <div className="hidden md:block">{identity}</div>
       {/* On phones the name and sign-out move into a menu. */}
       <button
@@ -47,8 +48,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="block text-lg font-bold">Jiran</span>
           <span className="hidden text-sm text-brand-bright md:block">City of Elmina · Sime Darby Property</span>
         </p>
-        <div className="md:order-last md:mt-auto">
-          <Suspense fallback={<div className="size-11 md:h-24 md:w-auto" />}>
+        <div className="flex items-center gap-2 md:order-last md:mt-auto md:flex-col md:items-stretch md:gap-6">
+          <Suspense fallback={<div className="size-11 md:h-40 md:w-auto" />}>
             <Account />
           </Suspense>
         </div>
