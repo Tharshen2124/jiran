@@ -15,21 +15,36 @@ async function Account() {
     supabase.from("profiles").select("role, full_name").eq("id", user.sub).single(),
     getPoints(supabase, user.sub),
   ]);
+  const name = profile?.full_name ?? user.email ?? "Resident";
+  const identity = (
+    <form action={signOut} className="flex flex-col gap-3">
+      <p className="min-w-0 leading-tight">
+        <span className="block truncate text-sm font-semibold text-on-dark">{name}</span>
+        <span className="block text-sm text-brand-bright">{ROLE_LABEL[(profile?.role ?? "resident") as keyof typeof ROLE_LABEL]}</span>
+      </p>
+      <button className={SIDEBAR_BUTTON}>Sign out</button>
+    </form>
+  );
   return (
-    <div className="flex flex-wrap items-end gap-x-6 gap-y-4 md:flex-col md:items-stretch">
-      <form action={signOut} className="flex flex-wrap items-center gap-2 md:flex-col md:items-stretch">
-        <p className="min-w-0 leading-tight">
-          <span className="block truncate text-sm font-semibold text-on-dark">{profile?.full_name ?? user.email}</span>
-          <span className="block text-sm text-brand-bright">{ROLE_LABEL[(profile?.role ?? "resident") as keyof typeof ROLE_LABEL]}</span>
-        </p>
-        <button className={SIDEBAR_BUTTON}>Sign out</button>
-      </form>
-      <p className="flex flex-col-reverse">
-        <span className="text-sm text-on-dark-muted">Your points</span>
-        <span className="text-3xl font-bold tabular-nums">
-          {points} <span className="text-base font-semibold text-gold">pts</span>
+    <div className="flex items-center gap-3 md:flex-col md:items-stretch md:gap-6">
+      <div className="hidden md:block">{identity}</div>
+      <p className="flex items-baseline md:flex-col-reverse">
+        <span className="sr-only text-sm text-on-dark-muted md:not-sr-only">Your points</span>
+        <span className="text-xl font-bold tabular-nums md:text-3xl">
+          {points} <span className="text-sm font-semibold text-gold md:text-base">pts</span>
         </span>
       </p>
+      {/* On phones the name and sign-out move into a menu. */}
+      <button
+        popoverTarget="account-menu"
+        aria-label={`Account: ${name}`}
+        className="grid size-11 place-items-center rounded-full bg-white/10 font-bold text-on-dark transition-colors duration-200 ease-arrive hover:bg-white/20 md:hidden"
+      >
+        {name.charAt(0).toUpperCase()}
+      </button>
+      <div id="account-menu" popover="auto" className="inset-auto top-16 right-4 w-64 rounded-2xl bg-deep p-4 text-on-dark ring-1 ring-white/15 md:hidden">
+        {identity}
+      </div>
     </div>
   );
 }
@@ -37,22 +52,23 @@ async function Account() {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-svh flex-col md:flex-row">
-      <aside className="flex flex-col gap-4 bg-deep p-4 text-on-dark md:sticky md:top-0 md:h-svh md:w-64 md:shrink-0 md:gap-8 md:p-6">
-        <p className="flex flex-wrap items-baseline gap-x-2 leading-tight md:block">
-          <span className="text-lg font-bold md:block">Jiran</span>
-          <span className="text-sm text-brand-bright">City of Elmina · Sime Darby Property</span>
+      <aside className="flex items-center justify-between gap-4 bg-deep px-4 py-2 text-on-dark md:sticky md:top-0 md:h-svh md:w-64 md:shrink-0 md:flex-col md:items-stretch md:justify-start md:gap-8 md:p-6">
+        <p className="leading-tight">
+          <span className="block text-lg font-bold">Jiran</span>
+          <span className="hidden text-sm text-brand-bright md:block">City of Elmina · Sime Darby Property</span>
         </p>
         <div className="md:order-last md:mt-auto">
-          <Suspense fallback={<div className="h-20 md:h-40" />}>
+          <Suspense fallback={<div className="h-11 md:h-48" />}>
             <Account />
           </Suspense>
         </div>
-        <nav aria-label="Primary" className="flex gap-1 md:flex-col">
+        {/* A bottom tab bar on phones, part of the sidebar from md up. */}
+        <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-2 gap-1 bg-deep p-2 md:static md:flex md:flex-col md:p-0">
           <NavLink href="/favours">Open favours</NavLink>
           <NavLink href="/my-favours">My favours</NavLink>
         </nav>
       </aside>
-      <main className="w-full max-w-5xl min-w-0 flex-1 p-4 sm:p-6 md:p-10">{children}</main>
+      <main className="w-full max-w-5xl min-w-0 flex-1 p-4 pb-24 sm:p-6 sm:pb-24 md:p-10">{children}</main>
     </div>
   );
 }

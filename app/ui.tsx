@@ -48,11 +48,11 @@ export function FavourCard({ favour, children, showStatus = true }: { favour: Fa
 
 export function Stats({ items }: { items: [label: string, value: number][] }) {
   return (
-    <dl className="mb-8 flex flex-wrap gap-x-12 gap-y-4">
+    <dl className="mb-8 grid auto-cols-fr grid-flow-col gap-4 sm:flex sm:gap-x-12">
       {items.map(([label, value]) => (
-        <div key={label} className="flex flex-col-reverse">
+        <div key={label} className="flex flex-col-reverse justify-end">
           <dt className="text-sm text-ink-muted">{label}</dt>
-          <dd className="text-4xl font-bold tracking-tight tabular-nums">{value}</dd>
+          <dd className="text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">{value}</dd>
         </div>
       ))}
     </dl>
