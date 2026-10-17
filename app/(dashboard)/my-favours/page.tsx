@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
-import { StatusButtons } from "../client";
-import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../ui";
+import { StatusButtons } from "../../client";
+import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
 import { getUser, listHelping, listRequested, nextStatuses, type Status } from "@/lib/favours";
 
 const FILTERS: { key: string; label: string; match: Status[] }[] = [
@@ -61,7 +61,7 @@ async function Helping({ searchParams }: { searchParams: PageProps<"/my-favours"
         ) : (
           <Empty>
             Nothing here yet.{" "}
-            <Link href="/" className="font-semibold text-brand underline-offset-4 hover:underline">
+            <Link href="/favours" className="font-semibold text-brand underline-offset-4 hover:underline">
               Browse open favours
             </Link>
           </Empty>
