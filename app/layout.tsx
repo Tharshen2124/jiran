@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { Suspense } from "react";
-import { switchUser } from "./actions";
+import { signInWithGoogle, signOut, switchUser } from "./actions";
 import { NavLink } from "./client";
 import { getPoints, getUser, USERS } from "@/lib/favours";
+import { createClient } from "@/utils/supabase/server";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -17,10 +19,29 @@ export const metadata: Metadata = {
   description: "Accept favours from neighbours, track their status and earn points.",
 };
 
+const SIDEBAR_BUTTON =
+  "min-h-11 rounded-full bg-white/10 px-4 text-sm font-semibold text-on-dark transition-colors duration-200 ease-arrive hover:bg-white/20";
+
 async function Account() {
-  const user = getUser((await cookies()).get("uid")?.value);
+  const cookieStore = await cookies();
+  const user = getUser(cookieStore.get("uid")?.value);
+  // Supabase checks token expiry with Date.now(), so this must run at request time, not in a cookie-aware prerender.
+  await connection();
+  const {
+    data: { user: authUser },
+  } = await createClient(cookieStore).auth.getUser();
   return (
     <div className="flex flex-wrap items-end gap-x-6 gap-y-4 md:flex-col md:items-stretch">
+      {authUser ? (
+        <form action={signOut} className="flex flex-wrap items-center gap-2 md:flex-col md:items-stretch">
+          <span className="truncate text-sm text-on-dark-muted">{authUser.email}</span>
+          <button className={SIDEBAR_BUTTON}>Sign out</button>
+        </form>
+      ) : (
+        <form action={signInWithGoogle}>
+          <button className={`${SIDEBAR_BUTTON} w-full`}>Sign in with Google</button>
+        </form>
+      )}
       <p className="flex flex-col-reverse">
         <span className="text-sm text-on-dark-muted">Your points</span>
         <span className="text-3xl font-bold tabular-nums">
@@ -43,7 +64,7 @@ async function Account() {
             ))}
           </select>
         </label>
-        <button className="min-h-11 rounded-full bg-white/10 px-4 text-sm font-semibold text-on-dark transition-colors duration-200 ease-arrive hover:bg-white/20">
+        <button className={SIDEBAR_BUTTON}>
           Switch
         </button>
       </form>
