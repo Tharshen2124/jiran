@@ -2,9 +2,9 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { signOut, switchUser } from "../actions";
+import { signOut } from "../actions";
 import { NavLink } from "../client";
-import { getPoints, getUser, USERS } from "@/lib/favours";
+import { getPoints, getUser } from "@/lib/favours";
 import { createClient } from "@/utils/supabase/server";
 
 const SIDEBAR_BUTTON =
@@ -39,24 +39,6 @@ async function Account() {
           {getPoints(user.id)} <span className="text-base font-semibold text-gold">pts</span>
         </span>
       </p>
-      <form action={switchUser} className="flex min-w-56 flex-1 items-end gap-2 md:min-w-0 md:flex-col md:items-stretch">
-        <label className="flex-1 space-y-1">
-          <span className="block text-sm text-on-dark-muted">Viewing as (demo)</span>
-          <select
-            name="uid"
-            defaultValue={user.id}
-            key={user.id}
-            className="min-h-11 w-full rounded-xl bg-white/10 px-3 text-sm text-on-dark [color-scheme:dark]"
-          >
-            {USERS.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button className={SIDEBAR_BUTTON}>Switch</button>
-      </form>
     </div>
   );
 }

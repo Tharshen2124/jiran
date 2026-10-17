@@ -3,12 +3,13 @@
 import { refresh } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { accept, getUser, setStatus, USERS, type Status } from "@/lib/favours";
+import { accept, getUser, setStatus, type Status } from "@/lib/favours";
 import { createClient } from "@/utils/supabase/server";
 
 export type ActionState = { error?: string } | undefined;
 
-// ponytail: demo identity from a cookie, no auth. Replace with real sessions before anyone else can reach this.
+// ponytail: favours still run on a demo identity (a leftover `uid` cookie, else the first demo user), not the Supabase session.
+// Key them to the signed-in user once favours live in the database.
 async function currentUser() {
   return getUser((await cookies()).get("uid")?.value);
 }
@@ -30,12 +31,6 @@ export async function acceptFavour(_: ActionState, form: FormData) {
 export async function updateStatus(_: ActionState, form: FormData) {
   const user = await currentUser();
   return run(() => setStatus(String(form.get("id")), user.id, String(form.get("to")) as Status));
-}
-
-export async function switchUser(form: FormData) {
-  const id = String(form.get("uid"));
-  if (!USERS.some((u) => u.id === id)) return;
-  (await cookies()).set("uid", id);
 }
 
 export type AuthState = { error?: string; message?: string } | undefined;
