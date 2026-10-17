@@ -5,8 +5,8 @@ import { createClient } from "@/utils/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  let next = searchParams.get("next") ?? "/";
-  if (!next.startsWith("/") || next.startsWith("//")) next = "/";
+  let next = searchParams.get("next") ?? "/favours";
+  if (!next.startsWith("/") || next.startsWith("//")) next = "/favours";
 
   if (code) {
     const supabase = createClient(await cookies());
@@ -20,5 +20,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  return NextResponse.redirect(`${origin}/login?error=oauth`);
 }
