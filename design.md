@@ -95,7 +95,7 @@ Red appears in four places only: primary buttons, focus outlines, eyebrow labels
 
 ## 3. Typography Rules
 
-Display and body both use **Metropolis** (self-hosted `.otf` via `@font-face`, weights 400/500/600/700, `font-display: swap`). Stack: `var(--font-metropolis), "Montserrat", ui-sans-serif, system-ui, sans-serif`. Montserrat 400–800 is loaded from Google Fonts as the fallback. Mono uses Tailwind's default `ui-monospace, SFMono-Regular, Menlo, …` stack.
+Display and body both use **Metropolis**, self-hosted from `app/fonts/` via `next/font/local` in weights 500/600/700/800 (no 400 or italics). Stack: `var(--font-metropolis), ui-sans-serif, system-ui, sans-serif`, plus the size-adjusted fallback `next/font` generates. There is no Montserrat fallback. Mono uses Tailwind's default `ui-monospace, SFMono-Regular, Menlo, …` stack.
 
 ### Hierarchy
 | Role    | Font        | Size                                   | Weight | Line height | Letter spacing |
@@ -104,14 +104,15 @@ Display and body both use **Metropolis** (self-hosted `.otf` via `@font-face`, w
 | H1      | Metropolis  | 30px → 36px → 48px (register heading)  | 700    | 1.08        | -0.025em to -0.04em |
 | H2      | Metropolis  | 30px / 36px                            | 700    | 1.12        | -0.04em        |
 | H3      | Metropolis  | 18px → 20px (md)                       | 600    | 1.08–1.375  | -0.025em       |
-| Body    | Metropolis  | 16px                                   | 400    | 1.6         | 0              |
+| Body    | Metropolis  | 16px                                   | 500    | 1.6         | 0              |
 | Small   | Metropolis  | 14px                                   | 500    | 1.25rem     | 0              |
 | Eyebrow | Metropolis  | 14px / 12px, uppercase                 | 700    | 1.25rem     | 0.14em–0.18em  |
 | Table header | Metropolis | 11.2px → 12px, uppercase           | 600    | —           | 0.1em          |
-| Mono    | ui-monospace| 1em                                    | 400    | inherit     | 0              |
+| Mono    | ui-monospace| 1em                                    | 500    | inherit     | 0              |
 
 ### Principles
 - All `h1–h4` are bold (700) with negative tracking (`-0.04em` base, `tracking-tight` `-0.025em` on utilities) and `text-wrap: balance`
+- Regular text is Medium (500), set once on `body`. Nothing renders at 400, so don't use `font-normal` or lighter.
 - Body copy uses `text-wrap: pretty` and a `max-width: 70ch` measure (`.max-w-measure`)
 - Uppercase is only used for small eyebrow and table-header labels, always with wide positive tracking
 - Numbers in tables use `tabular-nums`
@@ -243,7 +244,7 @@ Primary nav links are hidden below md and shown with `md:flex`. Grids collapse t
 ```
 
 ### Example Prompts
-1. "Build a dashboard shell in Next.js + Tailwind: left sidebar on `#120B0A` with `#C5B3A9` nav items (active item `#FCF4EB` with a 2px `#FF3B41` left indicator), a 4.5rem light top bar on `#FCF9F7` with a 1px `#E3DCDA` bottom border, and Metropolis/Montserrat as the font. Page titles 30px/700 with `-0.025em` tracking. This is an internal dashboard, not a landing page, so keep spacing dense."
+1. "Build a dashboard shell in Next.js + Tailwind: left sidebar on `#120B0A` with `#C5B3A9` nav items (active item `#FCF4EB` with a 2px `#FF3B41` left indicator), a 4.5rem light top bar on `#FCF9F7` with a 1px `#E3DCDA` bottom border, and Metropolis as the font (500 for body text). Page titles 30px/700 with `-0.025em` tracking. This is an internal dashboard, not a landing page, so keep spacing dense."
 2. "Create a stat-tile row: white cards (`#FFFFFF`, `1px #E3DCDA` border, `border-radius: 1.25rem`, `padding: 1.5rem`, shadow `0 1px 2px rgba(15,23,42,.04), 0 8px 24px -12px rgba(15,23,42,.18)`). Each tile has a 40px gold `#FCAF17` rounded-xl icon square, an uppercase 12px/700 `0.14em`-tracked label in `#6B615D`, and a 30px/700 `tabular-nums` value in `#211815`."
 3. "Build a favour list table: light table in a `rounded-2xl` bordered frame, uppercase 12px `0.1em` headers in `#6B615D`, 44px rows split by `#E3DCDA` hairlines, points in `tabular-nums`, and status pills (pill radius, 12px/600) using soft/ink pairs: gold `#FFEACA`/`#905D00` for pending, orange `#FFE7D7`/`#9F4500` for in progress, red `#FFE7E4`/`#AC1A1C` for cancelled. Primary 'Accept' button: pill, `#D71920` background, white 14px/600 text, 44px min height, hover `#B5151C`, 3px `#D71920` focus outline with 2px offset."
 

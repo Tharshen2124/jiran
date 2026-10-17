@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin"],
+const metropolis = localFont({
+  variable: "--font-metropolis",
+  src: [
+    { path: "./fonts/Metropolis-Medium.otf", weight: "500" },
+    { path: "./fonts/Metropolis-SemiBold.otf", weight: "600" },
+    { path: "./fonts/Metropolis-Bold.otf", weight: "700" },
+    { path: "./fonts/Metropolis-ExtraBold.otf", weight: "800" },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -14,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${montserrat.variable} h-full antialiased`}>
+    <html lang="en" className={`${metropolis.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test --no-warnings lib/*.test.ts"
+    "test": "supabase db query --linked -f supabase/tests/favours.sql"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

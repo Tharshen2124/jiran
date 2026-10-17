@@ -2,7 +2,7 @@
 
 /* Tokens from design.md, adapted for the dashboard */
 @theme {
-  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-metropolis), ui-sans-serif, system-ui, sans-serif;
 
   /* Darker than design.md's #FCF9F7 so white rows separate by tone, no borders or shadows */
   --color-bg: oklch(0.955 0.004 60);
@@ -39,6 +39,7 @@
   body {
     background: var(--color-bg);
     color: var(--color-ink);
+    font-weight: 500;
     line-height: 1.6;
   }
   
@@ -67,16 +68,10 @@
   --color-paper: #fcf9f7;
   --text-mega: clamp(88px, 13vw, 200px);
   --text-m: clamp(24px, 2.4vw, 36px);
-  --text-name: 34vw;
 }
 
 .landing {
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
-}
-
-.landing summary::-webkit-details-marker {
-  display: none;
 }
 
 .link {
@@ -101,21 +96,12 @@
   }
 }
 
-.day-slider {
-  height: 44px;
-  accent-color: var(--color-brand);
-  cursor: pointer;
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  /* "Ji" drops in from the top corner, "ran" rises from the bottom one. */
+  /* Display lines rise out of a mask. */
   .mask {
     overflow: hidden;
     padding: 0.12em 0.06em 0.06em;
     margin: -0.12em -0.06em -0.06em;
-  }
-  .drop {
-    animation: from-above 1100ms var(--ease-out) 150ms both;
   }
   .lift {
     animation: from-below 1100ms var(--ease-out) 300ms both;
@@ -124,39 +110,15 @@
     animation: rise 800ms var(--ease-out) both;
     animation-delay: calc(var(--i, 0) * 90ms + 550ms);
   }
-  .drift {
-    animation: settle 2200ms var(--ease-soft) both;
+  /* Each new favour's points and caption rise into place. */
+  .tick {
+    animation: rise 500ms var(--ease-out) both;
   }
 }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .enter {
-      animation: rise linear both;
-      animation-timeline: view();
-      animation-range: entry calc(5% + var(--i, 0) * 9%) entry calc(55% + var(--i, 0) * 9%);
-    }
-    .drift {
-      animation: settle 2200ms var(--ease-soft) both, drift linear both;
-      animation-timeline: auto, view();
-    }
-  }
-}
-
-@keyframes from-above {
-  from { transform: translateY(-110%); }
-}
 @keyframes from-below {
   from { transform: translateY(110%); }
 }
 @keyframes rise {
   from { opacity: 0; transform: translateY(24px); }
-}
-@keyframes settle {
-  from { scale: 1.12; }
-  to { scale: 1.04; }
-}
-@keyframes drift {
-  from { translate: 0 -3%; }
-  to { translate: 0 3%; }
 }

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { StatusButtons } from "../../client";
 import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
-import { getUser, listHelping, listRequested, nextStatuses, type Status } from "@/lib/favours";
+import { listHelping, listRequested, nextStatuses, type Status } from "@/lib/favours";
+import { getSession } from "@/utils/supabase/server";
 
 const FILTERS: { key: string; label: string; match: Status[] }[] = [
   { key: "all", label: "All", match: ["accepted", "in_progress", "completed", "cancelled"] },
@@ -13,10 +13,9 @@ const FILTERS: { key: string; label: string; match: Status[] }[] = [
 ];
 
 async function Helping({ searchParams }: { searchParams: PageProps<"/my-favours">["searchParams"] }) {
-  const [{ status }, jar] = await Promise.all([searchParams, cookies()]);
-  const user = getUser(jar.get("uid")?.value);
+  const [{ status }, { supabase, user }] = await Promise.all([searchParams, getSession()]);
   const filter = FILTERS.find((f) => f.key === status) ?? FILTERS[0];
-  const all = listHelping(user.id);
+  const all = await listHelping(supabase, user.sub);
   const favours = all.filter((f) => filter.match.includes(f.status));
   const done = all.filter((f) => f.status === "completed");
 
@@ -72,8 +71,8 @@ async function Helping({ searchParams }: { searchParams: PageProps<"/my-favours"
 }
 
 async function Requested() {
-  const user = getUser((await cookies()).get("uid")?.value);
-  const favours = listRequested(user.id);
+  const { supabase, user } = await getSession();
+  const favours = await listRequested(supabase, user.sub);
   return (
     <section aria-labelledby="requested" className="space-y-4">
       <h2 id="requested" className="text-2xl">Requested by me</h2>

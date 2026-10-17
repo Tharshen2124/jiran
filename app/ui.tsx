@@ -1,4 +1,4 @@
-import { getUser, STATUS_LABEL, type Favour, type Status } from "@/lib/favours";
+import { STATUS_LABEL, type Favour, type Status } from "@/lib/favours";
 
 const PILL: Record<Status, string> = {
   open: "bg-surface-2 text-ink-muted",
@@ -19,8 +19,6 @@ export function StatusPill({ status }: { status: Status }) {
 const fmt = new Intl.DateTimeFormat("en-MY", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kuala_Lumpur" });
 
 export function FavourCard({ favour, children, showStatus = true }: { favour: Favour; children?: React.ReactNode; showStatus?: boolean }) {
-  const requester = getUser(favour.requesterId);
-  const helper = favour.helperId ? getUser(favour.helperId) : null;
   return (
     <li className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 rounded-2xl bg-surface p-4 sm:grid-cols-[auto_1fr_auto] sm:gap-x-6 sm:p-5">
       <p className="flex size-16 flex-col items-center justify-center rounded-xl bg-gold-soft text-gold-ink">
@@ -31,10 +29,10 @@ export function FavourCard({ favour, children, showStatus = true }: { favour: Fa
         <h3 className="text-lg font-semibold">{favour.title}</h3>
         <p className="max-w-[65ch]">{favour.description}</p>
         <p className="text-sm text-ink-muted">
-          {favour.location} · by {requester.name}
-          {helper && ` · helped by ${helper.name}`} ·{" "}
-          <time dateTime={new Date(favour.updatedAt).toISOString()} className="tabular-nums">
-            {fmt.format(favour.updatedAt)}
+          {favour.location} · by {favour.requester?.full_name ?? "a neighbour"}
+          {favour.helper && ` · helped by ${favour.helper.full_name ?? "a neighbour"}`} ·{" "}
+          <time dateTime={new Date(favour.updated_at).toISOString()} className="tabular-nums">
+            {fmt.format(new Date(favour.updated_at))}
           </time>
         </p>
       </div>
@@ -50,11 +48,11 @@ export function FavourCard({ favour, children, showStatus = true }: { favour: Fa
 
 export function Stats({ items }: { items: [label: string, value: number][] }) {
   return (
-    <dl className="mb-8 flex flex-wrap gap-x-12 gap-y-4">
+    <dl className="mb-8 grid auto-cols-fr grid-flow-col gap-4 sm:flex sm:gap-x-12">
       {items.map(([label, value]) => (
-        <div key={label} className="flex flex-col-reverse">
+        <div key={label} className="flex flex-col-reverse justify-end">
           <dt className="text-sm text-ink-muted">{label}</dt>
-          <dd className="text-4xl font-bold tracking-tight tabular-nums">{value}</dd>
+          <dd className="text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">{value}</dd>
         </div>
       ))}
     </dl>
