@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { signOut } from "../actions";
 import { NavLink } from "../client";
-import { getPoints } from "@/lib/favours";
 import { getSession } from "@/utils/supabase/server";
 
 const SIDEBAR_BUTTON =
@@ -11,10 +10,7 @@ const ROLE_LABEL = { resident: "Resident", ra: "Resident administration", guard:
 
 async function Account() {
   const { supabase, user } = await getSession();
-  const [{ data: profile }, points] = await Promise.all([
-    supabase.from("profiles").select("role, full_name").eq("id", user.sub).single(),
-    getPoints(supabase, user.sub),
-  ]);
+  const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", user.sub).single();
   const name = profile?.full_name ?? user.email ?? "Resident";
   const identity = (
     <form action={signOut} className="flex flex-col gap-3">
@@ -26,14 +22,8 @@ async function Account() {
     </form>
   );
   return (
-    <div className="flex items-center gap-3 md:flex-col md:items-stretch md:gap-6">
+    <>
       <div className="hidden md:block">{identity}</div>
-      <p className="flex items-baseline md:flex-col-reverse">
-        <span className="sr-only text-sm text-on-dark-muted md:not-sr-only">Your points</span>
-        <span className="text-xl font-bold tabular-nums md:text-3xl">
-          {points} <span className="text-sm font-semibold text-gold md:text-base">pts</span>
-        </span>
-      </p>
       {/* On phones the name and sign-out move into a menu. */}
       <button
         popoverTarget="account-menu"
@@ -45,7 +35,7 @@ async function Account() {
       <div id="account-menu" popover="auto" className="inset-auto top-16 right-4 w-64 rounded-2xl bg-deep p-4 text-on-dark ring-1 ring-white/15 md:hidden">
         {identity}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -58,7 +48,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="hidden text-sm text-brand-bright md:block">City of Elmina · Sime Darby Property</span>
         </p>
         <div className="md:order-last md:mt-auto">
-          <Suspense fallback={<div className="h-11 md:h-48" />}>
+          <Suspense fallback={<div className="size-11 md:h-24 md:w-auto" />}>
             <Account />
           </Suspense>
         </div>

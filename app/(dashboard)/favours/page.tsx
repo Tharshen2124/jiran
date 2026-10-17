@@ -1,18 +1,19 @@
 import { Suspense } from "react";
 import { AcceptButton } from "../../client";
 import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
-import { listOpen } from "@/lib/favours";
+import { getPoints, listOpen } from "@/lib/favours";
 import { getSession } from "@/utils/supabase/server";
 
 async function OpenFavours() {
   const { supabase, user } = await getSession();
-  const favours = await listOpen(supabase, user.sub);
+  const [favours, points] = await Promise.all([listOpen(supabase, user.sub), getPoints(supabase, user.sub)]);
   return (
     <>
       <Stats
         items={[
           ["Open favours", favours.length],
           ["Points on offer", favours.reduce((n, f) => n + f.points, 0)],
+          ["Your points", points],
         ]}
       />
       {favours.length ? (
