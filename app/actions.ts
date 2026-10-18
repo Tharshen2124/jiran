@@ -66,6 +66,10 @@ export async function signInWithGoogle() {
 }
 
 export async function signOut() {
-  await createClient(await cookies()).auth.signOut();
+  const supabase = createClient(await cookies());
+  // Stop live sharing first: once signed out, the browser is no longer allowed to delete its row.
+  const { data } = await supabase.auth.getClaims();
+  if (data) await supabase.from("live_locations").delete().eq("user_id", data.claims.sub);
+  await supabase.auth.signOut();
   redirect("/");
 }

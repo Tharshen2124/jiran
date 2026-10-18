@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "supabase db query --linked -f supabase/tests/favours.sql"
+    "test": "supabase db query --linked -f supabase/tests/favours.sql && supabase db query --linked -f supabase/tests/live_locations.sql"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
