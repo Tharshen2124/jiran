@@ -2,10 +2,12 @@ import { Suspense } from "react";
 import { AcceptButton } from "../../client";
 import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
 import { getPoints, listOpen } from "@/lib/favours";
-import { getSession } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import { getProfile } from "@/utils/supabase/server";
 
 async function OpenFavours() {
-  const { supabase, user } = await getSession();
+  const { supabase, user, role } = await getProfile();
+  if (role === "guard") redirect("/patrol");
   const [favours, points] = await Promise.all([listOpen(supabase, user.sub), getPoints(supabase, user.sub)]);
   return (
     <>

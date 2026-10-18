@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { signOut } from "../actions";
 import { LiveDot, LiveLocationProvider, NavLink } from "../client";
-import { getSession } from "@/utils/supabase/server";
+import { getProfile } from "@/utils/supabase/server";
 
 const SIDEBAR_BUTTON =
   "min-h-11 rounded-full bg-white/10 px-4 text-sm font-semibold text-on-dark transition-colors duration-200 ease-arrive hover:bg-white/20";
@@ -9,14 +9,13 @@ const SIDEBAR_BUTTON =
 const ROLE_LABEL = { resident: "Resident", ra: "Resident administration", guard: "Security guard" } as const;
 
 async function Account() {
-  const { supabase, user } = await getSession();
-  const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", user.sub).single();
-  const name = profile?.full_name ?? user.email ?? "Resident";
+  const { user, role, fullName } = await getProfile();
+  const name = fullName ?? user.email ?? "Resident";
   const identity = (
     <form action={signOut} className="flex flex-col gap-3">
       <p className="min-w-0 leading-tight">
         <span className="block truncate text-sm font-semibold text-on-dark">{name}</span>
-        <span className="block text-sm text-brand-bright">{ROLE_LABEL[(profile?.role ?? "resident") as keyof typeof ROLE_LABEL]}</span>
+        <span className="block text-sm text-brand-bright">{ROLE_LABEL[role]}</span>
       </p>
       <button className={SIDEBAR_BUTTON}>Sign out</button>
     </form>
@@ -39,6 +38,28 @@ async function Account() {
   );
 }
 
+// Guards only patrol; favours are for residents. Guards share their location to patrol, so Patrol replaces Live location.
+async function NavLinks() {
+  const { role } = await getProfile();
+  if (role === "guard")
+    return (
+      <NavLink href="/patrol">
+        Patrol
+        <LiveDot />
+      </NavLink>
+    );
+  return (
+    <>
+      <NavLink href="/favours">Open favours</NavLink>
+      <NavLink href="/my-favours">My favours</NavLink>
+      <NavLink href="/location">
+        Live location
+        <LiveDot />
+      </NavLink>
+    </>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <LiveLocationProvider>
@@ -54,13 +75,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Suspense>
           </div>
           {/* A bottom tab bar on phones, part of the sidebar from md up. */}
-          <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 gap-1 bg-deep p-2 md:static md:flex md:flex-col md:p-0">
-            <NavLink href="/favours">Open favours</NavLink>
-            <NavLink href="/my-favours">My favours</NavLink>
-            <NavLink href="/location">
-              Live location
-              <LiveDot />
-            </NavLink>
+          <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-10 grid auto-cols-fr grid-flow-col gap-1 bg-deep p-2 md:static md:flex md:flex-col md:p-0">
+            <Suspense fallback={<div className="min-h-18 md:min-h-11" />}>
+              <NavLinks />
+            </Suspense>
           </nav>
         </aside>
         <main className="w-full max-w-5xl min-w-0 flex-1 p-4 pb-28 sm:p-6 sm:pb-28 md:p-10">{children}</main>

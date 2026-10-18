@@ -34,3 +34,12 @@ export const getSession = cache(async () => {
   if (!data) redirect("/login");
   return { supabase, user: data.claims };
 });
+
+export type Role = "resident" | "ra" | "guard";
+
+// The signed-in user's profile, read once per request (the layout and pages both need the role).
+export const getProfile = cache(async () => {
+  const session = await getSession();
+  const { data } = await session.supabase.from("profiles").select("role, full_name").eq("id", session.user.sub).single();
+  return { ...session, role: (data?.role ?? "resident") as Role, fullName: (data?.full_name ?? null) as string | null };
+});
