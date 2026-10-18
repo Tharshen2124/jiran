@@ -37,6 +37,9 @@ export const getSession = cache(async () => {
 
 export type Role = "resident" | "ra" | "guard";
 
+// Each role has its own dashboard and only sees its own pages.
+export const HOME: Record<Role, string> = { resident: "/favours", ra: "/report", guard: "/patrol" };
+
 // The signed-in user's profile, read once per request (the layout and pages both need the role).
 export const getProfile = cache(async () => {
   const session = await getSession();

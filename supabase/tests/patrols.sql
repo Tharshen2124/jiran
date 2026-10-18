@@ -8,6 +8,8 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000c', 'ra@test.invalid');
 update public.profiles set role = 'guard' where id = '00000000-0000-0000-0000-00000000000a';
 update public.profiles set role = 'ra' where id = '00000000-0000-0000-0000-00000000000c';
+-- Start from no patrols, whatever real guards have recorded (rolled back at the end).
+delete from public.patrol_events;
 
 -- Neighbouring jalans are ~47 m apart, so a 20 m checkpoint can only ever match its own street.
 do $$ begin
@@ -59,6 +61,15 @@ end $$;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c"}', true);
 do $$ begin
   assert (select count(*) from public.patrol_events) = 2, 'RA should see exactly the guard''s two patrols';
+  assert (select sum(patrols) from public.patrol_report(now() - interval '1 day', now() + interval '1 day', interval '2 hours')) = 2,
+    'report should count the two patrols';
+end $$;
+
+-- The resident gets an empty report.
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b"}', true);
+do $$ begin
+  assert not exists (select from public.patrol_report(now() - interval '1 day', now() + interval '1 day', interval '2 hours')),
+    'resident can read the patrol report';
 end $$;
 
 select 'ok' as patrol_rules;
