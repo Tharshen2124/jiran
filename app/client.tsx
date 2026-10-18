@@ -82,7 +82,7 @@ export function StatusButtons({ id, next }: { id: string; next: Status[] }) {
 
 // How often a sharing resident's location is sent. It doubles as a heartbeat: the database stamps every write, so a row
 // that stops updating means the session closed (see the live_locations migration).
-const TICK_MS = 10_000;
+export const TICK_MS = 10_000;
 
 const SEND_FAILED = "Couldn't send your location. Trying again…";
 const NO_FIX = "Can't find your location right now. Still trying…";
@@ -161,6 +161,8 @@ export function LiveLocationProvider({ children }: { children: React.ReactNode }
   return <LiveLocationContext value={{ on, sentAt, error, setSharing }}>{children}</LiveLocationContext>;
 }
 
+export const useLiveLocation = () => use(LiveLocationContext);
+
 // Marks the nav link while sharing, so it's visible from any page.
 export function LiveDot() {
   return use(LiveLocationContext).on ? (
@@ -173,7 +175,17 @@ export function LiveDot() {
 
 const timeFmt = new Intl.DateTimeFormat("en-MY", { hour: "numeric", minute: "2-digit", second: "2-digit" });
 
-export function LiveLocationPanel() {
+// What sharing does for whoever is reading. Residents share with their home dashboard; guards share to patrol.
+type SharingCopy = { off: string; sent: string; start: string; stop: string };
+
+const HOME_DASHBOARD: SharingCopy = {
+  off: "Your home dashboard can't tell when you're away.",
+  sent: "Your home dashboard last heard from you at",
+  start: "Your home dashboard will receive your location every 10 seconds and switch your home's security on while you're away.",
+  stop: "Your home dashboard will stop knowing when you're away, so your home's security won't switch on by itself.",
+};
+
+export function LiveLocationPanel({ copy = HOME_DASHBOARD }: { copy?: SharingCopy }) {
   const { on, sentAt, error, setSharing } = use(LiveLocationContext);
   const confirm = useRef<HTMLDialogElement>(null);
 
@@ -196,9 +208,9 @@ export function LiveLocationPanel() {
               {on === undefined
                 ? "Seeing whether you're already sharing."
                 : !on
-                  ? "Your home dashboard can't tell when you're away."
+                  ? copy.off
                   : sentAt
-                    ? `Your home dashboard last heard from you at ${timeFmt.format(sentAt)}.`
+                    ? `${copy.sent} ${timeFmt.format(sentAt)}.`
                     : "Finding your location…"}
             </p>
           </div>
@@ -228,9 +240,7 @@ export function LiveLocationPanel() {
           {on ? "Turn off live location?" : "Turn on live location?"}
         </h2>
         <p className="mt-2 text-ink-muted">
-          {on
-            ? "Your home dashboard will stop knowing when you're away, so your home's security won't switch on by itself."
-            : "Your home dashboard will receive your location every 10 seconds and switch your home's security on while you're away."}
+          {on ? copy.stop : copy.start}
         </p>
         <form method="dialog" className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button value="" className="inline-flex min-h-11 items-center justify-center rounded-full bg-surface-2 px-5 text-sm font-semibold transition-colors duration-200 ease-arrive hover:bg-line">

@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import { StatusButtons } from "../../client";
 import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
 import { listHelping, listRequested, nextStatuses, type Status } from "@/lib/favours";
-import { getSession } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import { getProfile, getSession } from "@/utils/supabase/server";
 
 const FILTERS: { key: string; label: string; match: Status[] }[] = [
   { key: "all", label: "All", match: ["accepted", "in_progress", "completed", "cancelled"] },
@@ -13,7 +14,9 @@ const FILTERS: { key: string; label: string; match: Status[] }[] = [
 ];
 
 async function Helping({ searchParams }: { searchParams: PageProps<"/my-favours">["searchParams"] }) {
-  const [{ status }, { supabase, user }] = await Promise.all([searchParams, getSession()]);
+  const [{ status }, { supabase, user, role }] = await Promise.all([searchParams, getProfile()]);
+  // Favours are for residents; guards only patrol.
+  if (role === "guard") redirect("/patrol");
   const filter = FILTERS.find((f) => f.key === status) ?? FILTERS[0];
   const all = await listHelping(supabase, user.sub);
   const favours = all.filter((f) => filter.match.includes(f.status));
