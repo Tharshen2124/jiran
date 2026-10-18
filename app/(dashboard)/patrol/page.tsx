@@ -3,7 +3,8 @@ import { LiveLocationPanel } from "../../client";
 import { PatrolMap } from "../../patrol-map";
 import { Empty, PageHeader, Stats } from "../../ui";
 import { listSections, PATROL_WINDOW_MS, type Section } from "@/lib/patrols";
-import { getProfile } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import { getProfile, HOME } from "@/utils/supabase/server";
 
 const HOURS = PATROL_WINDOW_MS / 3_600_000;
 
@@ -52,7 +53,7 @@ function Jalan({ name, sections }: { name: string; sections: Section[] }) {
 
 async function Patrol() {
   const { supabase, role } = await getProfile();
-  if (role !== "guard") return <Empty>Patrols are only for security guards.</Empty>;
+  if (role !== "guard") redirect(HOME[role]);
   const sections = await listSections(supabase);
   // Not Map.groupBy: it needs Node 21+, and Next 16 still runs on Node 20.
   const jalans = new Map<string, typeof sections>();

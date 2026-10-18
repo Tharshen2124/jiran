@@ -1,5 +1,8 @@
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { LiveLocationPanel } from "../../client";
 import { PageHeader } from "../../ui";
+import { getProfile, HOME } from "@/utils/supabase/server";
 
 const STEPS = [
   ["Turn it on before you head out", "Jiran sends your location to your home dashboard every 10 seconds."],
@@ -7,9 +10,19 @@ const STEPS = [
   ["It switches off when you're back", "Back home, security stands down again. This keeps happening until you turn sharing off."],
 ];
 
+// Home dashboard sharing is for residents; guards share their location from Patrol.
+async function ResidentsOnly() {
+  const { role } = await getProfile();
+  if (role !== "resident") redirect(HOME[role]);
+  return null;
+}
+
 export default function Page() {
   return (
     <>
+      <Suspense>
+        <ResidentsOnly />
+      </Suspense>
       <PageHeader title="Live location">Let your home dashboard know when you&apos;re out, so your home is protected while you&apos;re away.</PageHeader>
       <div className="max-w-2xl space-y-10">
         <LiveLocationPanel />
