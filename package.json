@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "supabase db query --linked -f supabase/tests/favours.sql && supabase db query --linked -f supabase/tests/live_locations.sql && supabase db query --linked -f supabase/tests/patrols.sql"
+    "test": "supabase db query --linked -f supabase/tests/favours.sql && supabase db query --linked -f supabase/tests/live_locations.sql && supabase db query --linked -f supabase/tests/patrols.sql && supabase db query --linked -f supabase/tests/marketplace.sql"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.9.0",

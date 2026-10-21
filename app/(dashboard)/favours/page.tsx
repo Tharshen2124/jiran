@@ -1,14 +1,15 @@
 import { Suspense } from "react";
 import { AcceptButton } from "../../client";
 import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
-import { getPoints, listOpen } from "@/lib/favours";
+import { listOpen } from "@/lib/favours";
+import { getBalance } from "@/lib/marketplace";
 import { redirect } from "next/navigation";
 import { getProfile, HOME } from "@/utils/supabase/server";
 
 async function OpenFavours() {
   const { supabase, user, role } = await getProfile();
   if (role !== "resident") redirect(HOME[role]);
-  const [favours, points] = await Promise.all([listOpen(supabase, user.sub), getPoints(supabase, user.sub)]);
+  const [favours, points] = await Promise.all([listOpen(supabase, user.sub), getBalance(supabase, user.sub)]);
   return (
     <>
       <Stats
