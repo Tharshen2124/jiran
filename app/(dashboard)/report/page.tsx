@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { PrintButton } from "../../client";
 import { PageHeader } from "../../ui";
 import { monthlyReport, ROUNDS, thisMonth, toMonth, type ReportDay, type RoundStatus, type RoundTotals } from "@/lib/patrols";
 import { getProfile, HOME } from "@/utils/supabase/server";
@@ -145,7 +144,9 @@ async function Report({ searchParams }: { searchParams: PageProps<"/report">["se
           <a href={`/report/csv?month=${month}`} download className={`${BUTTON} flex-1 bg-surface text-ink hover:bg-surface-2 @xl:flex-none`}>
             Download CSV
           </a>
-          <PrintButton className={`${BUTTON} flex-1 bg-brand text-white hover:bg-brand-strong @xl:flex-none`}>Save as PDF</PrintButton>
+          <a href={`/report/pdf?month=${month}`} download className={`${BUTTON} flex-1 bg-brand text-white hover:bg-brand-strong @xl:flex-none`}>
+            Download PDF
+          </a>
         </div>
       </div>
 

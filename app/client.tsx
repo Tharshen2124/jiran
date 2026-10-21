@@ -22,15 +22,6 @@ export function NavLink({ href, children }: { href: string; children: React.Reac
   );
 }
 
-// The browser's print dialog saves the page as a PDF; print: styles hide the dashboard chrome.
-export function PrintButton({ className, children }: { className: string; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={() => print()} className={className}>
-      {children}
-    </button>
-  );
-}
-
 function ErrorText({ state }: { state: ActionState }) {
   return state?.error ? (
     <p role="alert" className="text-sm font-medium text-error">
