@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, use, useActionState, useEffect, useRef, useState } from "react";
-import { acceptFavour, updateStatus, type ActionState } from "./actions";
+import { acceptFavour, redeemReward, updateStatus, type ActionState } from "./actions";
 import { STATUS_LABEL, type Status } from "@/lib/favours";
+import type { Reward } from "@/lib/marketplace";
 import { createClient } from "@/utils/supabase/client";
 
 export function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -76,6 +77,90 @@ export function StatusButtons({ id, next }: { id: string; next: Status[] }) {
         ))}
       </div>
       <ErrorText state={state} />
+    </form>
+  );
+}
+
+const DIALOG_BUTTON = "inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors duration-200 ease-arrive disabled:opacity-60";
+
+// Spending points can't be undone, so redeeming asks first (in red; the card buttons stay dark so a grid of them isn't loud), then shows the voucher code in the same dialog.
+export function RedeemButton({ reward, balance }: { reward: Reward; balance: number }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  // A new key on every open resets the form, so a reopened dialog asks again instead of showing the last code.
+  const [round, setRound] = useState(0);
+  const short = reward.cost - balance;
+
+  if (short > 0)
+    return <p className="text-sm font-semibold text-ink-muted tabular-nums">{short} more pts needed</p>;
+
+  return (
+    <>
+      <button
+        onClick={() => {
+          setRound((r) => r + 1);
+          dialog.current!.showModal();
+        }}
+        aria-label={`Redeem ${reward.title}`}
+        className={`${DIALOG_BUTTON} bg-ink text-surface hover:bg-deep`}
+      >
+        Redeem
+      </button>
+      <dialog
+        ref={dialog}
+        aria-labelledby={`redeem-${reward.id}`}
+        className="m-auto w-[min(28rem,calc(100%-2rem))] rounded-2xl bg-surface p-6 text-ink backdrop:bg-deep/60"
+      >
+        <RedeemForm key={round} reward={reward} balance={balance} close={() => dialog.current!.close()} />
+      </dialog>
+    </>
+  );
+}
+
+function RedeemForm({ reward, balance, close }: { reward: Reward; balance: number; close: () => void }) {
+  const [state, action, pending] = useActionState(redeemReward, undefined);
+  const titleId = `redeem-${reward.id}`;
+
+  if (state?.code)
+    return (
+      <div className="space-y-4">
+        <h2 id={titleId} className="text-xl font-semibold">
+          Voucher ready
+        </h2>
+        <p className="text-ink-muted">
+          Show this code at {reward.shop} for <span className="text-ink">{reward.title}</span>. It&apos;s saved under My vouchers.
+        </p>
+        <p className="rounded-xl border-2 border-dashed border-gold bg-gold-soft p-4 text-center font-mono text-2xl font-bold tracking-widest text-gold-ink">
+          {state.code}
+        </p>
+        <div className="flex justify-end">
+          <button autoFocus onClick={close} className={`${DIALOG_BUTTON} bg-surface-2 hover:bg-line`}>
+            Done
+          </button>
+        </div>
+      </div>
+    );
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="id" value={reward.id} />
+      <h2 id={titleId} className="text-xl font-semibold">
+        Redeem {reward.title}?
+      </h2>
+      <p className="mt-2 text-ink-muted">
+        This uses <span className="text-ink tabular-nums">{reward.cost} points</span> and leaves you with{" "}
+        <span className="text-ink tabular-nums">{balance - reward.cost}</span>. You&apos;ll get a code to show at {reward.shop}.
+      </p>
+      <div className="mt-3 empty:hidden">
+        <ErrorText state={state} />
+      </div>
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <button type="button" onClick={close} className={`${DIALOG_BUTTON} bg-surface-2 hover:bg-line`}>
+          Cancel
+        </button>
+        <button disabled={pending} className={`${DIALOG_BUTTON} bg-brand text-white hover:bg-brand-strong`}>
+          {pending ? "Redeeming…" : `Redeem for ${reward.cost} pts`}
+        </button>
+      </div>
     </form>
   );
 }

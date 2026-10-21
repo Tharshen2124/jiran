@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { accept, setStatus, type Status } from "@/lib/favours";
+import { redeem } from "@/lib/marketplace";
 import { createClient, getSession } from "@/utils/supabase/server";
 
 export type ActionState = { error?: string } | undefined;
@@ -25,6 +26,20 @@ export async function acceptFavour(_: ActionState, form: FormData) {
 export async function updateStatus(_: ActionState, form: FormData) {
   const { supabase } = await getSession();
   return run(() => setStatus(supabase, String(form.get("id")), String(form.get("to")) as Status));
+}
+
+export type RedeemState = { error?: string; code?: string } | undefined;
+
+export async function redeemReward(_: RedeemState, form: FormData): Promise<RedeemState> {
+  const { supabase } = await getSession();
+  let code;
+  try {
+    code = await redeem(supabase, String(form.get("id")));
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Something went wrong" };
+  }
+  refresh();
+  return { code };
 }
 
 export type AuthState = { error?: string; message?: string } | undefined;
