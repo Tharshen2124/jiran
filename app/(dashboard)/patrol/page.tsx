@@ -33,7 +33,7 @@ function Jalan({ name, sections }: { name: string; sections: Section[] }) {
         <ul className="text-sm text-ink-muted">
           {sections.map((s) => (
             <li key={s.id}>
-              <span className={s.patrolled ? "text-success-ink" : "text-error"}>{s.section}</span> ·{" "}
+              <span className={s.patrolled ? "text-success-ink" : "text-error"}>Section {s.section}</span> ·{" "}
               {s.lastAt ? (
                 <>
                   last passed <time dateTime={s.lastAt} className="tabular-nums">{fmt.format(new Date(s.lastAt))}</time>

@@ -38,9 +38,9 @@ export async function listSections(db: SupabaseClient): Promise<Section[]> {
     .sort(byStreet);
 }
 
-// Street order: 10/5 before 10/10, West before East.
+// Street order: 10/5 before 10/10, then section A before B.
 const byStreet = (a: { jalan: string; section: string }, b: { jalan: string; section: string }) =>
-  a.jalan.localeCompare(b.jalan, undefined, { numeric: true }) || b.section.localeCompare(a.section);
+  a.jalan.localeCompare(b.jalan, undefined, { numeric: true }) || a.section.localeCompare(b.section);
 
 // Guards patrol every checkpoint three times a day, each round in its own 8-hour window (Malaysian time). The patrol day
 // starts at 4 am, so the midnight round belongs to the evening it starts on.

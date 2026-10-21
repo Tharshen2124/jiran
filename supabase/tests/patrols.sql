@@ -21,11 +21,11 @@ end $$;
 create temp table fixes (step int, lat float8, lng float8, accuracy float8);
 insert into fixes values
   (1, 2.9200, 101.5700, 10),       -- far from everything
-  (2, 2.930777, 101.577556, 50),   -- on 10/5 West, but too vague to prove it
-  (3, 2.930777, 101.577556, 10),   -- on 10/5 West
+  (2, 2.930777, 101.577556, 50),   -- on 10/5 A, but too vague to prove it
+  (3, 2.930777, 101.577556, 10),   -- on 10/5 A
   (4, 2.930777, 101.577556, 10),   -- still there next tick
   (5, 2.9200, 101.5700, 10),       -- far away again
-  (6, 2.929621, 101.576574, 10),   -- 60 m west of the 10/8 West checkpoint…
+  (6, 2.929621, 101.576574, 10),   -- 60 m west of the 10/8 A checkpoint…
   (7, 2.929523, 101.577674, 10);   -- …and 60 m east of it a tick later, never within 20 m of it at a tick
 grant select on fixes to authenticated;
 
@@ -41,7 +41,7 @@ begin
     if f.step = 2 then assert not exists (select from public.patrol_events), 'vague or far fixes recorded a patrol'; end if;
   end loop;
   assert (select array_agg(c.jalan || ' ' || c.section order by c.jalan) from public.patrol_events e join public.checkpoints c on c.id = e.checkpoint_id)
-    = array['Jalan SP 10/5 West', 'Jalan SP 10/8 West'], 'expected one 10/5 West event and one 10/8 West event';
+    = array['Jalan SP 10/5 A', 'Jalan SP 10/8 A'], 'expected one 10/5 A event and one 10/8 A event';
   begin
     insert into public.patrol_events (guard_id, checkpoint_id) select auth.uid(), id from public.checkpoints limit 1;
     assert false, 'guard wrote a patrol event directly';
