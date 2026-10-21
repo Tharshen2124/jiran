@@ -42,7 +42,8 @@ async function rows(query: PromiseLike<{ data: unknown; error: Error | null }>) 
 }
 
 export const listOpen = (db: SupabaseClient, userId: string) =>
-  rows(db.from("favours").select(FIELDS).eq("status", "open").neq("requester_id", userId).order("created_at", { ascending: false }));
+  // House dashboards post favours with no requester_id; neq alone would drop those NULL rows.
+  rows(db.from("favours").select(FIELDS).eq("status", "open").or(`requester_id.is.null,requester_id.neq.${userId}`).order("created_at", { ascending: false }));
 
 export const listHelping = (db: SupabaseClient, userId: string) =>
   rows(db.from("favours").select(FIELDS).eq("helper_id", userId).order("updated_at", { ascending: false }));
