@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { monthlyReport, toMonth } from "@/lib/patrols";
+import { monthlyReport, ROUNDS, toMonth } from "@/lib/patrols";
 import { getProfile } from "@/utils/supabase/server";
 
 // "2026-10-18 15:05:00" in Malaysian time, which spreadsheets read as a date.
@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
   const { supabase, role } = await getProfile();
   if (role !== "ra") return new Response("Only the resident administration can export patrol reports.", { status: 403 });
   const month = toMonth(request.nextUrl.searchParams.get("month"));
-  const rows = await monthlyReport(supabase, month);
+  const { rows, fullDays } = await monthlyReport(supabase, month);
   const csv = [
-    ["Jalan", "Section", "Patrols", "Last patrolled", "Rounds missed"],
-    ...rows.map((r) => [r.jalan, r.section, r.patrols, r.lastAt ? fmt.format(new Date(r.lastAt)) : "Never", r.missed]),
+    ["Jalan", "Section", ...ROUNDS.map(([name]) => `${name} rounds missed (of ${fullDays})`), "Passes", "Last patrolled"],
+    ...rows.map((r) => [r.jalan, r.section, ...r.missed, r.patrols, r.lastAt ? fmt.format(new Date(r.lastAt)) : "Never"]),
   ]
     .map((row) => row.map(cell).join(","))
     .join("\r\n");

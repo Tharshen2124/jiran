@@ -44,7 +44,7 @@ Neighbourhood favours + security patrol dashboard for City of Elmina (Sime Darby
 - Migrations: add to `supabase/migrations/`, apply with `supabase db push`. Never `supabase config push`: `config.toml` is local-dev only and would wipe the remote Google provider/redirect settings.
 
 ## Layout
-- `app/(dashboard)/` signed-in pages: `favours`, `my-favours`, `location`, `patrol`, `report` (+ `report/csv` export). `layout.tsx` = sidebar/bottom tab bar, nav depends on role.
+- `app/(dashboard)/` signed-in pages: `favours`, `my-favours`, `location`, `patrol`, `report` (+ `report/csv` and `report/pdf` exports). `layout.tsx` = sidebar/bottom tab bar, nav depends on role.
 - `app/actions.ts` all server actions (favour accept/status, sign in/up, Google OAuth, sign out)
 - `app/client.tsx` client components (`LiveLocationProvider`, `NavLink`, `LiveDot`); `app/ui.tsx` shared UI
 - `app/login/`, `app/auth/callback/route.ts` auth flow; `app/landing.tsx` public landing
@@ -54,7 +54,7 @@ Neighbourhood favours + security patrol dashboard for City of Elmina (Sime Darby
 ## Domain rules
 - Roles: `resident | ra | guard` (`profiles.role`). Sign-ups are always residents; RA/guard are set manually by an admin in the DB.
 - One dashboard per role, each page redirects other roles to `HOME[role]` (`utils/supabase/server.ts`): residents see favours + live location, guards only Patrol, the RA only the monthly patrol report. Only residents can accept/update favours (RLS).
-- Patrol report: `public.patrol_report` RPC aggregates a month in the DB (security invoker, so RLS applies); "missed" = `PATROL_WINDOW_MS` rounds with no pass. PDF export is the browser's print dialog (`print:` styles hide the sidebar).
+- Patrol report: guards do 3 rounds a day (`ROUNDS` in `lib/patrols.ts`: morning 4am–12pm, afternoon 12–8pm, midnight 8pm–4am MYT; the patrol day and month start at 4am). `public.patrol_report` RPC returns which rounds each checkpoint was passed in (security invoker, so RLS applies); the app marks each round done (all checkpoints) / partly / missed (none), and counts missed rounds per checkpoint. The PDF is a server-rendered A4 document (`report/pdf/route.tsx`, `@react-pdf/renderer`, Metropolis read from `app/fonts`), not a print of the page.
 - Favour status flow is enforced in both `lib/favours.ts` (`NEXT`) and DB trigger `private.check_favour_transition`. Change both together.
 - Patrol: a section counts as patrolled for `PATROL_WINDOW_MS` (2h) after a guard passes its checkpoint; `private.record_patrol` records events from live locations.
 - Sign out deletes the user's `live_locations` row first (RLS blocks it after sign-out).
