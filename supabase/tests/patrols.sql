@@ -61,14 +61,17 @@ end $$;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c"}', true);
 do $$ begin
   assert (select count(*) from public.patrol_events) = 2, 'RA should see exactly the guard''s two patrols';
-  assert (select sum(patrols) from public.patrol_report(now() - interval '1 day', now() + interval '1 day', interval '2 hours')) = 2,
+  assert (select sum(patrols) from public.patrol_report(now() - interval '1 day', now() + interval '1 day', interval '8 hours')) = 2,
     'report should count the two patrols';
+  assert (select bool_and(rounds = array[date_bin(interval '8 hours', now(), now() - interval '1 day')])
+          from public.patrol_report(now() - interval '1 day', now() + interval '1 day', interval '8 hours')),
+    'report should put each patrol in the round it happened in';
 end $$;
 
 -- The resident gets an empty report.
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b"}', true);
 do $$ begin
-  assert not exists (select from public.patrol_report(now() - interval '1 day', now() + interval '1 day', interval '2 hours')),
+  assert not exists (select from public.patrol_report(now() - interval '1 day', now() + interval '1 day', interval '8 hours')),
     'resident can read the patrol report';
 end $$;
 

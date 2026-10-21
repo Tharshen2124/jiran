@@ -54,7 +54,7 @@ Neighbourhood favours + security patrol dashboard for City of Elmina (Sime Darby
 ## Domain rules
 - Roles: `resident | ra | guard` (`profiles.role`). Sign-ups are always residents; RA/guard are set manually by an admin in the DB.
 - One dashboard per role, each page redirects other roles to `HOME[role]` (`utils/supabase/server.ts`): residents see favours + live location, guards only Patrol, the RA only the monthly patrol report. Only residents can accept/update favours (RLS).
-- Patrol report: `public.patrol_report` RPC aggregates a month in the DB (security invoker, so RLS applies); "missed" = `PATROL_WINDOW_MS` rounds with no pass. PDF export is the browser's print dialog (`print:` styles hide the sidebar).
+- Patrol report: guards do 3 rounds a day (`ROUNDS` in `lib/patrols.ts`: morning 4am–12pm, afternoon 12–8pm, midnight 8pm–4am MYT; the patrol day and month start at 4am). `public.patrol_report` RPC returns which rounds each checkpoint was passed in (security invoker, so RLS applies); the app marks each round done (all checkpoints) / partly / missed (none), and counts missed rounds per checkpoint. PDF export is the browser's print dialog (`print:` styles hide the sidebar).
 - Favour status flow is enforced in both `lib/favours.ts` (`NEXT`) and DB trigger `private.check_favour_transition`. Change both together.
 - Patrol: a section counts as patrolled for `PATROL_WINDOW_MS` (2h) after a guard passes its checkpoint; `private.record_patrol` records events from live locations.
 - Sign out deletes the user's `live_locations` row first (RLS blocks it after sign-out).
