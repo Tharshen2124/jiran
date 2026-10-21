@@ -20,12 +20,25 @@ const fmt = new Intl.DateTimeFormat("en-MY", { day: "numeric", month: "short", h
 
 export function FavourCard({ favour, children, showStatus = true }: { favour: Favour; children?: React.ReactNode; showStatus?: boolean }) {
   return (
-    <li className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 rounded-2xl bg-surface p-4 sm:grid-cols-[auto_1fr_auto] sm:gap-x-6 sm:p-5">
+    <li
+      className={`grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 rounded-2xl bg-surface p-4 sm:grid-cols-[auto_1fr_auto] sm:gap-x-6 sm:p-5 ${favour.bumped_at ? "ring-2 ring-gold" : ""}`}
+    >
       <p className="flex size-16 flex-col items-center justify-center rounded-xl bg-gold-soft text-gold-ink">
         <span className="text-2xl leading-none font-bold tabular-nums">{favour.points}</span>
         <span className="text-sm font-semibold">pts</span>
       </p>
       <div className="min-w-0 space-y-1">
+        {favour.bumped_at && (
+          <p className="inline-flex min-h-7 items-center gap-1 rounded-full bg-tech-soft px-3 text-sm font-semibold text-tech-ink">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden className="size-3.5">
+              <path d="M8 2 2.5 8h3.5v6h4V8h3.5z" />
+            </svg>
+            Bumped
+            {favour.bump_points > 0 && <span className="tabular-nums">
+                · +{favour.bump_points} {favour.bump_points === 1 ? "pt" : "pts"}
+              </span>}
+          </p>
+        )}
         <h3 className="text-lg font-semibold">{favour.title}</h3>
         <p className="max-w-[65ch]">{favour.description}</p>
         <p className="text-sm text-ink-muted">

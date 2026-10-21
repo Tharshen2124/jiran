@@ -12,6 +12,8 @@ export type Favour = {
   points: number;
   status: Status;
   updated_at: string;
+  bumped_at: string | null;
+  bump_points: number;
   requester: Person;
   helper: Person;
 };
@@ -33,7 +35,7 @@ const NEXT: Partial<Record<Status, Status[]>> = {
 export const nextStatuses = (s: Status): Status[] => NEXT[s] ?? [];
 
 const FIELDS =
-  "id, title, description, location, points, status, updated_at, requester:profiles!requester_id(full_name), helper:profiles!helper_id(full_name)";
+  "id, title, description, location, points, status, updated_at, bumped_at, bump_points, requester:profiles!requester_id(full_name), helper:profiles!helper_id(full_name)";
 
 async function rows(query: PromiseLike<{ data: unknown; error: Error | null }>) {
   const { data, error } = await query;
@@ -43,7 +45,8 @@ async function rows(query: PromiseLike<{ data: unknown; error: Error | null }>) 
 
 export const listOpen = (db: SupabaseClient, userId: string) =>
   // House dashboards post favours with no requester_id; neq alone would drop those NULL rows.
-  rows(db.from("favours").select(FIELDS).eq("status", "open").or(`requester_id.is.null,requester_id.neq.${userId}`).order("created_at", { ascending: false }));
+  // feed_at is when it was posted or last bumped, so a bumped favour comes back to the top.
+  rows(db.from("favours").select(FIELDS).eq("status", "open").or(`requester_id.is.null,requester_id.neq.${userId}`).order("feed_at", { ascending: false }));
 
 export const listHelping = (db: SupabaseClient, userId: string) =>
   rows(db.from("favours").select(FIELDS).eq("helper_id", userId).order("updated_at", { ascending: false }));
