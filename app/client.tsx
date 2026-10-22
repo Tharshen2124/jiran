@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, use, useActionState, useEffect, useRef, useState } from "react";
-import { acceptFavour, arriveHome, redeemReward, startGuardianAngel, updateStatus, type ActionState } from "./actions";
+import { acceptFavour, arriveHome, boostFavour, redeemReward, startGuardianAngel, updateStatus, type ActionState } from "./actions";
 import { STATUS_LABEL, type Status } from "@/lib/favours";
 import type { Reward } from "@/lib/marketplace";
 import { createClient } from "@/utils/supabase/client";
@@ -194,6 +194,68 @@ function RedeemForm({ reward, balance, close }: { reward: Reward; balance: numbe
         </button>
       </div>
     </form>
+  );
+}
+
+const INPUT = "min-h-11 w-full rounded-xl border bg-surface px-4";
+
+// The RA sweetens a favour nobody has taken up: extra points and/or a voucher for whoever completes it.
+export function BoostButton({ favour, rewards }: { favour: { id: string; title: string }; rewards: Reward[] }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = `boost-${favour.id}`;
+  const [state, action, pending] = useActionState(async (prev: ActionState, form: FormData) => {
+    const next = await boostFavour(prev, form);
+    if (!next?.error) dialog.current?.close();
+    return next;
+  }, undefined);
+
+  return (
+    <>
+      <button
+        onClick={() => dialog.current!.showModal()}
+        aria-label={`Add a bonus to ${favour.title}`}
+        className={`${DIALOG_BUTTON} bg-ink text-surface hover:bg-deep`}
+      >
+        Add a bonus
+      </button>
+      <dialog
+        ref={dialog}
+        aria-labelledby={titleId}
+        className="m-auto w-[min(28rem,calc(100%-2rem))] rounded-2xl bg-surface p-6 text-ink backdrop:bg-deep/60"
+      >
+        <form action={action} className="space-y-4">
+          <input type="hidden" name="id" value={favour.id} />
+          <div className="space-y-2">
+            <h2 id={titleId} className="text-xl font-semibold">
+              Add a bonus to {favour.title}
+            </h2>
+            <p className="text-ink-muted">Whoever takes it up gets this when they complete it.</p>
+          </div>
+          <label className="block space-y-1.5">
+            <span className="block text-sm font-semibold">Extra points</span>
+            <input type="number" name="points" required min={0} max={100} defaultValue={0} className={`${INPUT} tabular-nums`} />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="block text-sm font-semibold">Voucher</span>
+            <select name="reward" className={INPUT}>
+              <option value="">No voucher</option>
+              {rewards.map((r) => (
+                <option key={r.id} value={r.id}>{`${r.icon} ${r.title} (${r.shop})`}</option>
+              ))}
+            </select>
+          </label>
+          <ErrorText state={state} />
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" onClick={() => dialog.current!.close()} className={`${DIALOG_BUTTON} bg-surface-2 hover:bg-line`}>
+              Cancel
+            </button>
+            <button disabled={pending} className={`${DIALOG_BUTTON} bg-brand text-white hover:bg-brand-strong`}>
+              {pending ? "Adding…" : "Add bonus"}
+            </button>
+          </div>
+        </form>
+      </dialog>
+    </>
   );
 }
 

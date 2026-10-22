@@ -1,4 +1,4 @@
-import { STATUS_LABEL, type Favour, type Status } from "@/lib/favours";
+import { STATUS_LABEL, worth, type Favour, type Status } from "@/lib/favours";
 
 const PILL: Record<Status, string> = {
   open: "bg-surface-2 text-ink-muted",
@@ -18,26 +18,42 @@ export function StatusPill({ status }: { status: Status }) {
 
 const fmt = new Intl.DateTimeFormat("en-MY", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kuala_Lumpur" });
 
-export function FavourCard({ favour, children, showStatus = true }: { favour: Favour; children?: React.ReactNode; showStatus?: boolean }) {
+const BADGE = "inline-flex min-h-7 items-center gap-1 rounded-full px-3 text-sm font-semibold";
+
+// `flag` marks a favour that needs attention (the RA's week-old ones) above the usual bump highlight.
+export function FavourCard({ favour, children, showStatus = true, flag }: { favour: Favour; children?: React.ReactNode; showStatus?: boolean; flag?: string }) {
+  const bonus = favour.boost_points > 0 || !!favour.reward;
   return (
     <li
-      className={`grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 rounded-2xl bg-surface p-4 sm:grid-cols-[auto_1fr_auto] sm:gap-x-6 sm:p-5 ${favour.bumped_at ? "ring-2 ring-gold" : ""}`}
+      className={`grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 rounded-2xl bg-surface p-4 sm:grid-cols-[auto_1fr_auto] sm:gap-x-6 sm:p-5 ${flag ? "ring-2 ring-error" : favour.bumped_at ? "ring-2 ring-gold" : ""}`}
     >
       <p className="flex size-16 flex-col items-center justify-center rounded-xl bg-gold-soft text-gold-ink">
-        <span className="text-2xl leading-none font-bold tabular-nums">{favour.points}</span>
+        <span className="text-2xl leading-none font-bold tabular-nums">{worth(favour)}</span>
         <span className="text-sm font-semibold">pts</span>
       </p>
       <div className="min-w-0 space-y-1">
-        {favour.bumped_at && (
-          <p className="inline-flex min-h-7 items-center gap-1 rounded-full bg-tech-soft px-3 text-sm font-semibold text-tech-ink">
-            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden className="size-3.5">
-              <path d="M8 2 2.5 8h3.5v6h4V8h3.5z" />
-            </svg>
-            Bumped
-            {favour.bump_points > 0 && <span className="tabular-nums">
-                · +{favour.bump_points} {favour.bump_points === 1 ? "pt" : "pts"}
-              </span>}
-          </p>
+        {(flag || favour.bumped_at || bonus) && (
+          <div className="flex flex-wrap gap-2">
+            {flag && <p className={`${BADGE} bg-brand-soft text-error`}>{flag}</p>}
+            {favour.bumped_at && (
+              <p className={`${BADGE} bg-tech-soft text-tech-ink`}>
+                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden className="size-3.5">
+                  <path d="M8 2 2.5 8h3.5v6h4V8h3.5z" />
+                </svg>
+                Bumped
+                {favour.bump_points > 0 && <span className="tabular-nums">
+                    · +{favour.bump_points} {favour.bump_points === 1 ? "pt" : "pts"}
+                  </span>}
+              </p>
+            )}
+            {bonus && (
+              <p className={`${BADGE} bg-gold-soft text-gold-ink`}>
+                RA bonus
+                {favour.boost_points > 0 && <span className="tabular-nums">· +{favour.boost_points} {favour.boost_points === 1 ? "pt" : "pts"}</span>}
+                {favour.reward && <span>· {favour.reward.icon} {favour.reward.title}</span>}
+              </p>
+            )}
+          </div>
         )}
         <h3 className="text-lg font-semibold">{favour.title}</h3>
         <p className="max-w-[65ch]">{favour.description}</p>

@@ -38,11 +38,17 @@ async function Account() {
   );
 }
 
-// Each role gets its own dashboard: residents do favours, guards patrol, the RA reads the patrol report.
-// Guards share their location to patrol, so Patrol replaces Live location.
+// Each role gets its own dashboard: residents do favours, guards patrol, the RA reads the patrol report and handles
+// favours nobody takes up. Guards share their location to patrol, so Patrol replaces Live location.
 async function NavLinks() {
   const { role } = await getProfile();
-  if (role === "ra") return <NavLink href="/report">Patrol report</NavLink>;
+  if (role === "ra")
+    return (
+      <>
+        <NavLink href="/report">Patrol report</NavLink>
+        <NavLink href="/unclaimed">Unclaimed favours</NavLink>
+      </>
+    );
   if (role === "guard")
     return (
       <NavLink href="/patrol">

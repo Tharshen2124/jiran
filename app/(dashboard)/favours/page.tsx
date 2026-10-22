@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { AcceptButton } from "../../client";
 import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
-import { listOpen } from "@/lib/favours";
+import { listOpen, worth } from "@/lib/favours";
 import { getBalance } from "@/lib/marketplace";
 import { redirect } from "next/navigation";
 import { getProfile, HOME } from "@/utils/supabase/server";
@@ -15,7 +15,7 @@ async function OpenFavours() {
       <Stats
         items={[
           ["Open favours", favours.length],
-          ["Points on offer", favours.reduce((n, f) => n + f.points, 0)],
+          ["Points on offer", favours.reduce((n, f) => n + worth(f), 0)],
           ["Your points", points],
         ]}
       />

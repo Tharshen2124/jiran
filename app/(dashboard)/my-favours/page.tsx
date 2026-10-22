@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { StatusButtons } from "../../client";
 import { Empty, FavourCard, ListSkeleton, PageHeader, Stats } from "../../ui";
-import { listHelping, listRequested, nextStatuses, type Status } from "@/lib/favours";
+import { listHelping, listRequested, nextStatuses, worth, type Status } from "@/lib/favours";
 import { redirect } from "next/navigation";
 import { getProfile, getSession, HOME } from "@/utils/supabase/server";
 
@@ -27,7 +27,7 @@ async function Helping({ searchParams }: { searchParams: PageProps<"/my-favours"
         items={[
           ["Active", all.filter((f) => FILTERS[1].match.includes(f.status)).length],
           ["Completed", done.length],
-          ["Points earned", done.reduce((n, f) => n + f.points, 0)],
+          ["Points earned", done.reduce((n, f) => n + worth(f), 0)],
         ]}
       />
       <section aria-labelledby="helping" className="space-y-4">
