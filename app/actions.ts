@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { accept, setStatus, type Status } from "@/lib/favours";
+import { accept, boost, setStatus, type Status } from "@/lib/favours";
 import { arrive, nextTime, start } from "@/lib/guardian-angel";
 import { redeem } from "@/lib/marketplace";
 import { createClient, getSession } from "@/utils/supabase/server";
@@ -27,6 +27,11 @@ export async function acceptFavour(_: ActionState, form: FormData) {
 export async function updateStatus(_: ActionState, form: FormData) {
   const { supabase } = await getSession();
   return run(() => setStatus(supabase, String(form.get("id")), String(form.get("to")) as Status));
+}
+
+export async function boostFavour(_: ActionState, form: FormData) {
+  const { supabase } = await getSession();
+  return run(() => boost(supabase, String(form.get("id")), Number(form.get("points")), String(form.get("reward")) || null));
 }
 
 export async function startGuardianAngel(_: ActionState, form: FormData) {

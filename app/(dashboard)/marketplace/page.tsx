@@ -116,7 +116,8 @@ async function Vouchers() {
               <div className="min-w-0">
                 <h3 className="font-semibold">{r.reward?.title ?? "Reward"}</h3>
                 <p className="text-sm text-ink-muted">
-                  {r.reward?.shop} · <span className="tabular-nums">{r.cost} pts</span> ·{" "}
+                  {/* Free vouchers come from favours with an RA bonus. */}
+                  {r.reward?.shop} · {r.cost ? <span className="tabular-nums">{r.cost} pts</span> : "Favour bonus"} ·{" "}
                   <time dateTime={new Date(r.created_at).toISOString()} className="tabular-nums">
                     {fmt.format(new Date(r.created_at))}
                   </time>

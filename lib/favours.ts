@@ -11,12 +11,18 @@ export type Favour = {
   location: string;
   points: number;
   status: Status;
+  created_at: string;
   updated_at: string;
   bumped_at: string | null;
   bump_points: number;
+  boost_points: number;
+  reward: { title: string; icon: string } | null;
   requester: Person;
   helper: Person;
 };
+
+// What the helper earns: the house's points plus whatever the RA added (public.redeem sums the same).
+export const worth = (f: { points: number; boost_points: number }) => f.points + f.boost_points;
 
 export const STATUS_LABEL: Record<Status, string> = {
   open: "Open",
@@ -35,7 +41,7 @@ const NEXT: Partial<Record<Status, Status[]>> = {
 export const nextStatuses = (s: Status): Status[] => NEXT[s] ?? [];
 
 const FIELDS =
-  "id, title, description, location, points, status, updated_at, bumped_at, bump_points, requester:profiles!requester_id(full_name), helper:profiles!helper_id(full_name)";
+  "id, title, description, location, points, status, created_at, updated_at, bumped_at, bump_points, boost_points, reward:rewards(title, icon), requester:profiles!requester_id(full_name), helper:profiles!helper_id(full_name)";
 
 async function rows(query: PromiseLike<{ data: unknown; error: Error | null }>) {
   const { data, error } = await query;
@@ -54,10 +60,19 @@ export const listHelping = (db: SupabaseClient, userId: string) =>
 export const listRequested = (db: SupabaseClient, userId: string) =>
   rows(db.from("favours").select(FIELDS).eq("requester_id", userId).order("updated_at", { ascending: false }));
 
+// The RA's list: every open favour, oldest first, with how many whole days it has waited for a helper.
+export const STALE_DAYS = 7;
+
+export async function listUnclaimed(db: SupabaseClient) {
+  const favours = await rows(db.from("favours").select(FIELDS).eq("status", "open").order("created_at"));
+  const now = Date.now();
+  return favours.map((f) => ({ ...f, days: Math.floor((now - Date.parse(f.created_at)) / 86_400_000) }));
+}
+
 export async function getPoints(db: SupabaseClient, userId: string) {
-  const { data, error } = await db.from("favours").select("points").eq("helper_id", userId).eq("status", "completed");
+  const { data, error } = await db.from("favours").select("points, boost_points").eq("helper_id", userId).eq("status", "completed");
   if (error) throw error;
-  return data.reduce((n, f) => n + f.points, 0);
+  return data.reduce((n, f) => n + worth(f), 0);
 }
 
 // RLS only matches open favours or ones you help with, and the database rejects invalid status moves.
@@ -72,3 +87,9 @@ export const accept = (db: SupabaseClient, id: string, userId: string) =>
 
 export const setStatus = (db: SupabaseClient, id: string, to: Status) =>
   update(db, id, { status: to }, "Only the helper can update this favour");
+
+// Only the RA, and only while the favour is open (public.boost_favour checks both).
+export async function boost(db: SupabaseClient, id: string, extra: number, rewardId: string | null) {
+  const { error } = await db.rpc("boost_favour", { favour: id, extra, reward: rewardId });
+  if (error) throw new Error(error.message);
+}

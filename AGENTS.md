@@ -44,7 +44,7 @@ Neighbourhood favours + security patrol dashboard for City of Elmina (Sime Darby
 - Migrations: add to `supabase/migrations/`, apply with `supabase db push`. Never `supabase config push`: `config.toml` is local-dev only and would wipe the remote Google provider/redirect settings.
 
 ## Layout
-- `app/(dashboard)/` signed-in pages: `favours`, `my-favours`, `location`, `guardian-angel`, `marketplace`, `patrol`, `report` (+ `report/csv` and `report/pdf` exports). `layout.tsx` = sidebar/bottom tab bar, nav depends on role.
+- `app/(dashboard)/` signed-in pages: `favours`, `my-favours`, `location`, `guardian-angel`, `marketplace`, `patrol`, `report`, `unclaimed` (+ `report/csv` and `report/pdf` exports). `layout.tsx` = sidebar/bottom tab bar, nav depends on role.
 - `app/actions.ts` all server actions (favour accept/status, sign in/up, Google OAuth, sign out)
 - `app/client.tsx` client components (`LiveLocationProvider`, `NavLink`, `LiveDot`); `app/ui.tsx` shared UI
 - `app/login/`, `app/auth/callback/route.ts` auth flow; `app/landing.tsx` public landing
@@ -53,11 +53,12 @@ Neighbourhood favours + security patrol dashboard for City of Elmina (Sime Darby
 
 ## Domain rules
 - Roles: `resident | ra | guard` (`profiles.role`). Sign-ups are always residents; RA/guard are set manually by an admin in the DB.
-- One dashboard per role, each page redirects other roles to `HOME[role]` (`utils/supabase/server.ts`): residents see favours + live location, guards only Patrol, the RA only the monthly patrol report. Only residents can accept/update favours (RLS).
+- One dashboard per role, each page redirects other roles to `HOME[role]` (`utils/supabase/server.ts`): residents see favours + live location, guards only Patrol, the RA the monthly patrol report and Unclaimed favours. Residents and the RA can accept/update favours (RLS).
 - Patrol report: guards do 3 rounds a day (`ROUNDS` in `lib/patrols.ts`: morning 4am–12pm, afternoon 12–8pm, midnight 8pm–4am MYT; the patrol day and month start at 4am). `public.patrol_report` RPC returns which rounds each checkpoint was passed in (security invoker, so RLS applies); the app marks each round done (all checkpoints) / partly / missed (none), and counts missed rounds per checkpoint. The PDF is a server-rendered A4 document (`report/pdf/route.tsx`, `@react-pdf/renderer`, Metropolis read from `app/fonts`), not a print of the page.
 - Favour status flow is enforced in both `lib/favours.ts` (`NEXT`) and DB trigger `private.check_favour_transition`. Change both together.
 - Favour bumps: only house dashboards bump (Jiran-Dashboard, secret key), once per MYT day while open; residents' update grant excludes the bump columns. The open feed orders by `feed_at` (generated: posted or last bumped); `bump_points` is what bumps added. Point math is in Jiran-Dashboard `points.ts` / `Formula.md`.
-- Marketplace (residents only): a balance is completed favours' points minus `redemptions.cost`, never stored. Redeeming only goes through the `public.redeem` RPC (locks the profile row, checks the balance, issues a `JRN-` voucher code); `rewards` is demo data seeded in its migration.
+- Unclaimed favours (RA only): every open favour oldest first, flagged after `STALE_DAYS` (7) in `lib/favours.ts`. The RA can accept one like a resident, or add a bonus via `public.boost_favour`: `boost_points` (kept out of `points` because dashboard bumps recalculate and cap `points`) and/or a `reward_id` voucher. A helper earns `points + boost_points` (`worth()`); completing a favour with a `reward_id` issues a free (`cost` 0) redemption via trigger `private.issue_favour_voucher`.
+- Marketplace (residents only): a balance is completed favours' `points + boost_points` minus `redemptions.cost`, never stored. Redeeming only goes through the `public.redeem` RPC (locks the profile row, checks the balance, issues a `JRN-` voucher code); `rewards` is demo data seeded in its migration.
 - Patrol: a section counts as patrolled for `PATROL_WINDOW_MS` (2h) after a guard passes its checkpoint; `private.record_patrol` records events from live locations.
 - Houses: each home dashboard (Jiran-Dashboard) is a `houses` row; it picks which one on its demo-only `/choose-house` page (stored in a `house_id` cookie, no env var). A resident's home is `profiles.house_id`, set by an admin like roles; residents can read only their own house.
 - Guardian Angel (residents only): one `guardian_angels` row per resident (start = upsert with an ETA, "I'm home" sets `arrived_at`). RLS only allows a trip to the resident's own house. While a trip is open the house's surveillance system is active; the dashboard's Security page shows it and refreshes every 10s.
