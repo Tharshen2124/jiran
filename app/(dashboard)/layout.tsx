@@ -58,7 +58,8 @@ async function NavLinks() {
         Live location
         <LiveDot />
       </NavLink>
-      <NavLink href="/marketplace">Marketplace</NavLink>
+      <NavLink href="/guardian-angel">Guardian Angel</NavLink>
+      <NavLink href="/marketplace">Market&shy;place</NavLink>
     </>
   );
 }

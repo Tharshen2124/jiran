@@ -44,11 +44,11 @@ Neighbourhood favours + security patrol dashboard for City of Elmina (Sime Darby
 - Migrations: add to `supabase/migrations/`, apply with `supabase db push`. Never `supabase config push`: `config.toml` is local-dev only and would wipe the remote Google provider/redirect settings.
 
 ## Layout
-- `app/(dashboard)/` signed-in pages: `favours`, `my-favours`, `location`, `marketplace`, `patrol`, `report` (+ `report/csv` and `report/pdf` exports). `layout.tsx` = sidebar/bottom tab bar, nav depends on role.
+- `app/(dashboard)/` signed-in pages: `favours`, `my-favours`, `location`, `guardian-angel`, `marketplace`, `patrol`, `report` (+ `report/csv` and `report/pdf` exports). `layout.tsx` = sidebar/bottom tab bar, nav depends on role.
 - `app/actions.ts` all server actions (favour accept/status, sign in/up, Google OAuth, sign out)
 - `app/client.tsx` client components (`LiveLocationProvider`, `NavLink`, `LiveDot`); `app/ui.tsx` shared UI
 - `app/login/`, `app/auth/callback/route.ts` auth flow; `app/landing.tsx` public landing
-- `lib/favours.ts`, `lib/marketplace.ts`, `lib/patrols.ts` data access (take a `SupabaseClient`)
+- `lib/favours.ts`, `lib/marketplace.ts`, `lib/patrols.ts`, `lib/guardian-angel.ts` data access (take a `SupabaseClient`)
 - `utils/supabase/{server,client,middleware}.ts` clients. Server code uses `getSession()` / `getProfile()` from `server.ts` (cached per request, redirect to `/login` when signed out).
 
 ## Domain rules
@@ -59,6 +59,8 @@ Neighbourhood favours + security patrol dashboard for City of Elmina (Sime Darby
 - Favour bumps: only house dashboards bump (Jiran-Dashboard, secret key), once per MYT day while open; residents' update grant excludes the bump columns. The open feed orders by `feed_at` (generated: posted or last bumped); `bump_points` is what bumps added. Point math is in Jiran-Dashboard `points.ts` / `Formula.md`.
 - Marketplace (residents only): a balance is completed favours' points minus `redemptions.cost`, never stored. Redeeming only goes through the `public.redeem` RPC (locks the profile row, checks the balance, issues a `JRN-` voucher code); `rewards` is demo data seeded in its migration.
 - Patrol: a section counts as patrolled for `PATROL_WINDOW_MS` (2h) after a guard passes its checkpoint; `private.record_patrol` records events from live locations.
+- Houses: each home dashboard (Jiran-Dashboard) is a `houses` row; it picks which one on its demo-only `/choose-house` page (stored in a `house_id` cookie, no env var). A resident's home is `profiles.house_id`, set by an admin like roles; residents can read only their own house.
+- Guardian Angel (residents only): one `guardian_angels` row per resident (start = upsert with an ETA, "I'm home" sets `arrived_at`). RLS only allows a trip to the resident's own house. While a trip is open the house's surveillance system is active; the dashboard's Security page shows it and refreshes every 10s.
 - Sign out deletes the user's `live_locations` row first (RLS blocks it after sign-out).
 - DB helper functions live in the `private` schema; access is via RLS policies + column grants.
 

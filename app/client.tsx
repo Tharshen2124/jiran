@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, use, useActionState, useEffect, useRef, useState } from "react";
-import { acceptFavour, redeemReward, updateStatus, type ActionState } from "./actions";
+import { acceptFavour, arriveHome, redeemReward, startGuardianAngel, updateStatus, type ActionState } from "./actions";
 import { STATUS_LABEL, type Status } from "@/lib/favours";
 import type { Reward } from "@/lib/marketplace";
 import { createClient } from "@/utils/supabase/client";
@@ -14,7 +14,7 @@ export function NavLink({ href, children }: { href: string; children: React.Reac
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`flex min-h-18 items-center justify-center rounded-xl px-2 text-center text-sm font-semibold md:min-h-11 md:justify-start md:px-4 md:text-left md:text-base transition-colors duration-200 ease-arrive ${
+      className={`flex min-h-18 items-center justify-center rounded-xl px-1 text-center text-sm font-semibold md:min-h-11 md:justify-start md:px-4 md:text-left md:text-base transition-colors duration-200 ease-arrive ${
         active ? "bg-white/10 text-on-dark" : "text-on-dark-muted hover:bg-white/5 hover:text-on-dark"
       }`}
     >
@@ -76,6 +76,38 @@ export function StatusButtons({ id, next }: { id: string; next: Status[] }) {
           </button>
         ))}
       </div>
+      <ErrorText state={state} />
+    </form>
+  );
+}
+
+const BIG_BUTTON =
+  "inline-flex min-h-12 w-full items-center justify-center rounded-full bg-brand px-6 font-semibold text-white transition-colors duration-200 ease-arrive hover:bg-brand-strong disabled:opacity-60";
+
+export function StartGuardianAngel({ houseId, defaultEta }: { houseId: string; defaultEta: string }) {
+  const [state, action, pending] = useActionState(startGuardianAngel, undefined);
+  return (
+    <form action={action} className="space-y-4">
+      <input type="hidden" name="house" value={houseId} />
+      <label className="block space-y-1.5">
+        <span className="block text-sm font-semibold">Expected home by</span>
+        <input type="time" name="eta" required defaultValue={defaultEta} className="min-h-12 w-full rounded-xl border bg-surface px-4 text-lg tabular-nums" />
+      </label>
+      <button disabled={pending} className={BIG_BUTTON}>
+        {pending ? "Starting…" : "Start Guardian Angel"}
+      </button>
+      <ErrorText state={state} />
+    </form>
+  );
+}
+
+export function ArriveHomeButton() {
+  const [state, action, pending] = useActionState(arriveHome, undefined);
+  return (
+    <form action={action} className="space-y-2">
+      <button disabled={pending} className={BIG_BUTTON}>
+        {pending ? "Checking in…" : "I'm home"}
+      </button>
       <ErrorText state={state} />
     </form>
   );
